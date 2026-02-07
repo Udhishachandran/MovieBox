@@ -7,12 +7,13 @@ class MovieDetailViewModel: ObservableObject {
     @Published var trailerKey: String?
 
     func load(id: Int) {
-        TMDBService.fetchMovieDetail(id: id) {
-            self.detail = $0
-        }
-
-        TMDBService.fetchTrailer(id: id) {
-            self.trailerKey = $0?.key
+        Task {
+            do {
+                self.detail = try await TMDBService.fetchMovieDetail(id: id)
+                self.trailerKey = try await TMDBService.fetchTrailer(id: id)?.key
+            } catch {
+                print("\(Strings.failedToLoadMovieDetail):", error)
+            }
         }
     }
 }

@@ -23,12 +23,17 @@ struct MovieRowView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(movie.title)
                     .font(.headline)
-
+                if let duration = movie.runtime {
+                    Text("\(duration) min")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                
                 Text("⭐️ \(movie.vote_average, specifier: "%.1f")")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
-
+            
             Spacer()
 
             Button {

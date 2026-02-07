@@ -2,74 +2,41 @@ import Foundation
 
 class TMDBService {
 
-    static func fetchPopularMovies(completion: @escaping ([Movie]) -> Void) {
-
+    static func fetchPopularMovies() async throws -> [Movie] {
         if let cached = CacheManager.shared.getMovies(for: Strings.popular) {
-            DispatchQueue.main.async {
-                completion(cached)
-            }
-            return
+            return cached
         }
-
+        
         let url = URL(string: "\(Constants.baseURL)/movie/popular?api_key=\(Constants.apiKey)")!
-
-        URLSession.shared.dataTask(with: url) { data, _, _ in
-            guard let data else { return }
-
-            let response = try? JSONDecoder().decode(MovieResponse.self, from: data)
-            let movies = response?.results ?? []
-
-            CacheManager.shared.setMovies(movies, for: Strings.popular)
-
-            DispatchQueue.main.async {
-                completion(movies)
-            }
-        }.resume()
+        let (data, _) = try await URLSession.shared.data(from: url)
+        
+        // Decode off main actor
+        let response = try JSONDecoder().decode(MovieResponse.self, from: data)
+        let movies = response.results
+        
+        CacheManager.shared.setMovies(movies, for: Strings.popular)
+        return movies
     }
 
-    static func searchMovies(query: String, completion: @escaping ([Movie]) -> Void) {
-
+    static func searchMovies(query: String) async throws -> [Movie] {
         let q = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
         let url = URL(string: "\(Constants.baseURL)/search/movie?api_key=\(Constants.apiKey)&query=\(q)")!
-
-        URLSession.shared.dataTask(with: url) { data, _, _ in
-            guard let data else { return }
-
-            let response = try? JSONDecoder().decode(MovieResponse.self, from: data)
-
-            DispatchQueue.main.async {
-                completion(response?.results ?? [])
-            }
-        }.resume()
+        let (data, _) = try await URLSession.shared.data(from: url)
+        
+        let response = try JSONDecoder().decode(MovieResponse.self, from: data)
+        return response.results
     }
 
-    static func fetchMovieDetail(id: Int, completion: @escaping (MovieDetail?) -> Void) {
+    static func fetchMovieDetail(id: Int) async throws -> MovieDetail {
         let url = URL(string: "\(Constants.baseURL)/movie/\(id)?api_key=\(Constants.apiKey)")!
-
-        URLSession.shared.dataTask(with: url) { data, _, _ in
-            guard let data else { return }
-
-            let detail = try? JSONDecoder().decode(MovieDetail.self, from: data)
-
-            DispatchQueue.main.async {
-                completion(detail)
-            }
-        }.resume()
+        let (data, _) = try await URLSession.shared.data(from: url)
+        return try JSONDecoder().decode(MovieDetail.self, from: data)
     }
 
-    static func fetchTrailer(id: Int, completion: @escaping (Video?) -> Void) {
-
+    static func fetchTrailer(id: Int) async throws -> Video? {
         let url = URL(string: "\(Constants.baseURL)/movie/\(id)/videos?api_key=\(Constants.apiKey)")!
-
-        URLSession.shared.dataTask(with: url) { data, _, _ in
-            guard let data else { return }
-
-            let response = try? JSONDecoder().decode(VideoResponse.self, from: data)
-            let trailer = response?.results.first { $0.type == Strings.trailer }
-
-            DispatchQueue.main.async {
-                completion(trailer)
-            }
-        }.resume()
+        let (data, _) = try await URLSession.shared.data(from: url)
+        let response = try JSONDecoder().decode(VideoResponse.self, from: data)
+        return response.results.first { $0.type == Strings.trailer }
     }
 }

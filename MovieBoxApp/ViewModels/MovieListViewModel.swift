@@ -6,27 +6,40 @@ class MovieListViewModel: ObservableObject {
     @Published var movies: [Movie] = []
     @Published var searchText = ""
     
-    private var searchTask: DispatchWorkItem?
-
+    private var searchTask: Task<Void, Never>? = nil
     
     func loadMovies() {
-        TMDBService.fetchPopularMovies { self.movies = $0 }
+        searchTask?.cancel()
+        searchTask = Task {
+            do {
+                let movies = try await TMDBService.fetchPopularMovies()
+                self.movies = movies
+            } catch {
+                print("\(Strings.failedToLoadMovies):", error)
+                self.movies = []
+            }
+        }
     }
     
     func search() {
         searchTask?.cancel()
         
-        let task = DispatchWorkItem {
-            if self.searchText.isEmpty {
-                self.loadMovies()
-            } else {
-                TMDBService.searchMovies(query: self.searchText) {
-                    self.movies = $0
+        let text = searchText
+        searchTask = Task { [weak self] in
+            guard let self = self else { return }
+            
+            do {
+                let movies: [Movie]
+                if text.isEmpty {
+                    movies = try await TMDBService.fetchPopularMovies()
+                } else {
+                    movies = try await TMDBService.searchMovies(query: text)
                 }
+                self.movies = movies
+            } catch {
+                print("\(Strings.searchFailed):", error)
+                self.movies = []
             }
         }
-        
-        searchTask = task
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4, execute: task)
     }
 }

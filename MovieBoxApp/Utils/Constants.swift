@@ -17,4 +17,8 @@ struct Strings {
     static let trailer: String = "Trailer"
     static let popular: String = "popular"
     static let popularMovies: String = "Popular Movies"
+    static let noTrailerAvailable: String = "No trailer available."
+    static let failedToLoadMovies: String = "Failed to load movies"
+    static let searchFailed: String = "Search Failed"
+    static let failedToLoadMovieDetail: String = "Failed to load movie detail"
 }
