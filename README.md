@@ -8,7 +8,7 @@ The app displays popular movies, allows searching, viewing details, playing trai
 ## Setup
 
 1. **TMDb API Key**
-   - Register at [TMDb](https://www.themoviedb.org/) to get an API key.
+   - get API Key from [TMDb](https://www.themoviedb.org/).
    - Add your API key in `Utils/Constants.swift`:
 
    ```swift
@@ -27,14 +27,15 @@ Implemented Features
 
 Home Screen: Lists popular movies with title, poster, and rating.
 Movie Detail Screen: Shows title, overview, genres, duration, rating, and trailer.
-Trailer Playback: Plays trailers inside the app using embedded YouTube player via WKWebView.
+Trailer Playback: Plays trailers inside the app using an embedded YouTube player via WKWebView.
 Search: Users can search movies by title.
-Favorites: Users can mark/unmark favorites, which persist between app launches.
-Caching: Movie list and images are cached for better performance.
+Favorites: Users can mark/unmark favorites. Favorites persist locally between app launches.
+Caching: Movie list and images are cached to improve performance and reduce network calls.
 
 Known Limitations
 
+Movie duration is not displayed on the Home Screen because the "popular movies" API does not provide runtime.
 Trailer playback requires a valid YouTube video key.
-No offline mode for movie details.
-Favorites are stored locally (UserDefaults), not synced with a server.
-Some TMDb data (like cast) may not be complete if API limits are reached.
+Movie details are not available offline.
+Favorites are stored locally using UserDefaults and are not synced with a backend.
+Some TMDb data (e.g., cast information) may be incomplete if API rate limits are reached.
